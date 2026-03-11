@@ -1,10 +1,10 @@
 /**
  * birthday.js — Anasooya's Birthday Surprise 🎂
  *
- * HOW IT WORKS:
- *   - First visit:  full effect (balloons + confetti + petals + sparkles + message)
- *   - Second visit: lighter reminder effect
- *   - Third+ visit: nothing runs
+ * ┌─────────────────────────────────────────────────┐
+ *   CHANGE THIS BEFORE SENDING TO ANASOOYA:
+ *   Set MODE to 'anasooya' when handing off the app.
+ * └─────────────────────────────────────────────────┘
  *
  * TO REMOVE AFTER BIRTHDAY:
  *   1. Delete this file (birthday.js)
@@ -13,46 +13,76 @@
  */
 
 (function () {
+
+    // ─────────────────────────────────────────────
+    //  CONFIG — edit this section only
+    // ─────────────────────────────────────────────
+    const CONFIG = {
+        // 'me'       → developer mode: shows every single page load, no limits
+        // 'anasooya' → gift mode: shows MAX_SHOWS times then never again
+        mode: 'me',
+
+        // How many times Anasooya sees it (only applies when mode = 'anasooya')
+        maxShows: 2,
+
+        // How long the overlay stays on screen (milliseconds)
+        duration: 10000,
+    };
+    // ─────────────────────────────────────────────
+
     const STORAGE_KEY = 'anasooya_bday_seen';
-    const MAX_SHOWS   = 2;
-    const DURATION_MS = 10000; // 10 seconds on screen
 
-    // --- Check visit count ---
-    const seen = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
-    if (seen >= MAX_SHOWS) return;
-    localStorage.setItem(STORAGE_KEY, String(seen + 1));
-
-    const isFirstVisit = seen === 0;
-
-    // --- Wait for page to fully load ---
-    window.addEventListener('load', () => {
-        setTimeout(() => launch(isFirstVisit), 600);
-    });
+    // --- Visit logic ---
+    if (CONFIG.mode === 'anasooya') {
+        // Gift mode: count visits and stop after maxShows
+        const seen = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
+        if (seen >= CONFIG.maxShows) return;
+        localStorage.setItem(STORAGE_KEY, String(seen + 1));
+        const isFirstVisit = seen === 0;
+        window.addEventListener('load', () => {
+            setTimeout(() => launch(isFirstVisit, CONFIG.duration), 600);
+        });
+    } else {
+        // Developer mode: always show full effect, never save to localStorage
+        console.log('%c🎂 Birthday — developer mode (shows every load). Change CONFIG.mode to \'anasooya\' before gifting!', 'color: #c084fc; font-size: 13px; font-weight: bold;');
+        window.addEventListener('load', () => {
+            setTimeout(() => launch(true, CONFIG.duration), 600);
+        });
+    }
 
     // ─────────────────────────────────────────────
     //  MAIN LAUNCHER
     // ─────────────────────────────────────────────
-    function launch(full) {
+    function launch(full, duration) {
         injectStyles();
 
         const overlay = createOverlay(full);
         document.body.appendChild(overlay);
 
-        if (full) {
-            spawnBalloons(overlay, 18);
-            spawnPetals(overlay, 30);
-            spawnSparkles(overlay, 40);
-            startConfetti(overlay, 120);
-        } else {
-            // Lighter second-visit reminder
-            spawnBalloons(overlay, 7);
-            spawnPetals(overlay, 14);
-            spawnSparkles(overlay, 20);
-            startConfetti(overlay, 50);
-        }
+        // Scale particle counts to screen size
+        const w = window.innerWidth;
+        const isMobile  = w <= 480;
+        const isTablet  = w > 480 && w <= 900;
 
-        // Auto-dismiss after DURATION_MS
-        setTimeout(() => dismiss(overlay), DURATION_MS);
+        const counts = full ? {
+            balloons:  isMobile ? 8  : isTablet ? 12 : 18,
+            petals:    isMobile ? 14 : isTablet ? 20 : 30,
+            sparkles:  isMobile ? 18 : isTablet ? 28 : 40,
+            confetti:  isMobile ? 50 : isTablet ? 80 : 120,
+        } : {
+            balloons:  isMobile ? 4  : isTablet ? 5  : 7,
+            petals:    isMobile ? 6  : isTablet ? 10 : 14,
+            sparkles:  isMobile ? 8  : isTablet ? 14 : 20,
+            confetti:  isMobile ? 20 : isTablet ? 35 : 50,
+        };
+
+        spawnBalloons(overlay, counts.balloons);
+        spawnPetals(overlay, counts.petals);
+        spawnSparkles(overlay, counts.sparkles);
+        startConfetti(overlay, counts.confetti, duration);
+
+        // Auto-dismiss after duration
+        setTimeout(() => dismiss(overlay), duration);
     }
 
     // ─────────────────────────────────────────────
@@ -213,7 +243,7 @@
         '#34d399', '#fb923c', '#f472b6', '#a78bfa'
     ];
 
-    function startConfetti(parent, count) {
+    function startConfetti(parent, count, duration) {
         const canvas = document.createElement('canvas');
         canvas.className = 'bday-confetti-canvas';
         parent.appendChild(canvas);
@@ -286,11 +316,11 @@
 
         draw();
 
-        // Stop spawning after DURATION_MS, clean up canvas
+        // Stop spawning after duration, clean up canvas
         setTimeout(() => {
             cancelAnimationFrame(rafId);
             canvas.remove();
-        }, DURATION_MS + 1000);
+        }, duration + 1000);
     }
 
     // ─────────────────────────────────────────────
@@ -501,10 +531,119 @@
                 pointer-events: none;
             }
 
-            /* Mobile tweaks */
+            /* ── Tablet: 481px – 900px ── */
+            @media (min-width: 481px) and (max-width: 900px) {
+                .bday-card {
+                    padding: 36px 40px 30px;
+                    max-width: 420px;
+                    border-radius: 26px;
+                }
+
+                .bday-emoji {
+                    font-size: 46px;
+                    margin-bottom: 10px;
+                }
+
+                .bday-line1 {
+                    font-size: 0.9rem;
+                }
+
+                .bday-line2 {
+                    font-size: 3rem;
+                }
+
+                .bday-line3 {
+                    font-size: 1.3rem;
+                    margin-bottom: 16px;
+                }
+
+                .bday-close {
+                    width: 34px;
+                    height: 34px;
+                    font-size: 0.8rem;
+                }
+            }
+
+            /* ── Mobile: up to 480px ── */
             @media (max-width: 480px) {
-                .bday-line2 { font-size: 2.8rem; }
-                .bday-card  { padding: 32px 28px 28px; }
+                .bday-card {
+                    padding: 28px 22px 24px;
+                    max-width: 92vw;
+                    border-radius: 20px;
+                }
+
+                .bday-emoji {
+                    font-size: 38px;
+                    margin-bottom: 8px;
+                }
+
+                .bday-line1 {
+                    font-size: 0.78rem;
+                    letter-spacing: 0.05em;
+                }
+
+                .bday-line2 {
+                    font-size: 2.4rem;
+                }
+
+                .bday-line3 {
+                    font-size: 1.1rem;
+                    margin-bottom: 14px;
+                }
+
+                .bday-close {
+                    top: 10px;
+                    right: 12px;
+                    width: 28px;
+                    height: 28px;
+                    font-size: 0.7rem;
+                }
+
+                /* Smaller card variant on mobile */
+                .bday-card--small {
+                    padding: 20px 18px 18px;
+                }
+
+                .bday-card--small .bday-line2 {
+                    font-size: 2rem;
+                }
+            }
+
+            /* ── Landscape phone: short viewport ── */
+            @media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
+                .bday-card {
+                    padding: 16px 32px 14px;
+                    max-width: 500px;
+                    border-radius: 16px;
+                    /* Shift card up slightly so it clears the keyboard / nav bar */
+                    top: 48%;
+                }
+
+                .bday-emoji {
+                    font-size: 28px;
+                    margin-bottom: 4px;
+                }
+
+                .bday-line1 {
+                    font-size: 0.72rem;
+                }
+
+                .bday-line2 {
+                    font-size: 2rem;
+                    margin-bottom: 2px;
+                }
+
+                .bday-line3 {
+                    font-size: 1rem;
+                    margin-bottom: 10px;
+                }
+
+                .bday-close {
+                    top: 8px;
+                    right: 10px;
+                    width: 26px;
+                    height: 26px;
+                }
             }
         `;
         document.head.appendChild(style);
