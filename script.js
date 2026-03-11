@@ -8,6 +8,8 @@ class PixelArtStudioPro {
         this.history = [];
         this.currentHistoryIndex = -1;
         this.customPalette = [];
+        this.MAX_HISTORY = 20;
+        this.addToHistoryDebounced = this.debounce(() => this.addToHistory(), 600);
         
         this.initEventListeners();
         this.initPalettes();
@@ -407,10 +409,6 @@ class PixelArtStudioPro {
             this.clearHistory();
         });
 
-        // Batch processing
-        document.getElementById('batchBtn').addEventListener('click', () => {
-            this.batchProcess();
-        });
     }
 
     loadImage(file) {
@@ -467,30 +465,41 @@ class PixelArtStudioPro {
     }
 
     updateImageInfo(file) {
-        document.getElementById('imgDimensions').textContent = 
+        // Show dimension, size and format instantly — these never block
+        document.getElementById('imgDimensions').textContent =
             `${this.originalImage.width} x ${this.originalImage.height}`;
-        document.getElementById('imgSize').textContent = 
+        document.getElementById('imgSize').textContent =
             (file.size / 1024).toFixed(2) + ' KB';
-        document.getElementById('imgFormat').textContent = 
+        document.getElementById('imgFormat').textContent =
             file.type.split('/')[1].toUpperCase();
-        
-        // Count colors (simplified)
-        const imageData = this.originalCtx.getImageData(0, 0, 
-            this.originalCanvas.width, this.originalCanvas.height);
-        const colors = new Set();
-        for (let i = 0; i < imageData.data.length; i += 4) {
-            const key = `${imageData.data[i]},${imageData.data[i+1]},${imageData.data[i+2]}`;
-            colors.add(key);
-        }
-        document.getElementById('imgColors').textContent = colors.size;
+
+        // Color count can be expensive on large images — show a placeholder
+        // immediately then calculate off the main thread via setTimeout
+        document.getElementById('imgColors').textContent = '…';
+        setTimeout(() => {
+            const imageData = this.originalCtx.getImageData(
+                0, 0, this.originalCanvas.width, this.originalCanvas.height);
+            const data = imageData.data;
+            const colors = new Set();
+
+            // Sample every 4th pixel — accurate enough for a colour estimate,
+            // and up to 16x faster than checking every pixel
+            for (let i = 0; i < data.length; i += 16) {
+                colors.add(`${data[i]},${data[i + 1]},${data[i + 2]}`);
+            }
+
+            document.getElementById('imgColors').textContent =
+                colors.size.toLocaleString() + '~';
+        }, 0);
     }
 
     processImage() {
         if (!this.originalImage) return;
 
-        // Show loading spinner
+        // Show loading spinner and disable process button to prevent queued race conditions
         document.getElementById('loadingSpinner').style.display = 'block';
-        
+        document.getElementById('processBtn').disabled = true;
+
         // Use setTimeout to allow UI to update
         setTimeout(() => {
             const pixelSize = parseInt(document.getElementById('pixelSize').value);
@@ -591,16 +600,17 @@ class PixelArtStudioPro {
             // Draw grid if enabled
             this.drawGrid();
             
-            // Hide loading spinner
+            // Hide loading spinner and re-enable process button
             document.getElementById('loadingSpinner').style.display = 'none';
+            document.getElementById('processBtn').disabled = false;
             
             // Enable download button
             document.getElementById('downloadBtn').disabled = false;
             document.getElementById('copyBtn').disabled = false;
             document.getElementById('shareBtn').disabled = false;
             
-            // Add to history
-            this.addToHistory();
+            // Add to history (debounced so rapid slider drags only save one entry)
+            this.addToHistoryDebounced();
         }, 50);
     }
 
@@ -1327,27 +1337,44 @@ class PixelArtStudioPro {
     }
 
     addToHistory() {
-        const imageData = this.pixelCtx.getImageData(0, 0, 
-            this.pixelCanvas.width, this.pixelCanvas.height);
-        
+        // Store as a compressed PNG data URL instead of a raw ImageData buffer.
+        // A raw 800x800 frame is ~2.5 MB; a PNG data URL is typically 10-20x smaller,
+        // keeping the 20-entry history well under 5 MB in most cases.
+        const dataURL = this.pixelCanvas.toDataURL('image/png');
+
+        // Discard any forward history if we branched
         if (this.currentHistoryIndex < this.history.length - 1) {
             this.history = this.history.slice(0, this.currentHistoryIndex + 1);
         }
-        
-        this.history.push(imageData);
+
+        this.history.push(dataURL);
         this.currentHistoryIndex++;
-        
+
+        // Enforce cap — drop oldest entry to stay within MAX_HISTORY
+        if (this.history.length > this.MAX_HISTORY) {
+            this.history.shift();
+            this.currentHistoryIndex--;
+        }
+
         this.updateHistoryPanel();
         document.getElementById('undoBtn').disabled = false;
         document.getElementById('clearHistoryBtn').disabled = false;
-        document.getElementById('batchBtn').disabled = false;
+    }
+
+    // Restore a history entry (data URL) back onto the pixel canvas
+    _restoreHistoryEntry(dataURL) {
+        const img = new Image();
+        img.onload = () => {
+            this.pixelCtx.clearRect(0, 0, this.pixelCanvas.width, this.pixelCanvas.height);
+            this.pixelCtx.drawImage(img, 0, 0);
+        };
+        img.src = dataURL;
     }
 
     undo() {
         if (this.currentHistoryIndex > 0) {
             this.currentHistoryIndex--;
-            const imageData = this.history[this.currentHistoryIndex];
-            this.pixelCtx.putImageData(imageData, 0, 0);
+            this._restoreHistoryEntry(this.history[this.currentHistoryIndex]);
         }
         document.getElementById('undoBtn').disabled = this.currentHistoryIndex === 0;
         this.updateHistoryPanel();
@@ -1363,12 +1390,12 @@ class PixelArtStudioPro {
     updateHistoryPanel() {
         const panel = document.getElementById('historyPanel');
         panel.innerHTML = '';
-        
+
         if (this.history.length === 0) {
             panel.innerHTML = '<div style="text-align: center; color: var(--text-muted);">No history yet</div>';
             return;
         }
-        
+
         const start = Math.max(0, this.history.length - 5);
         for (let i = start; i < this.history.length; i++) {
             const item = document.createElement('div');
@@ -1376,25 +1403,18 @@ class PixelArtStudioPro {
             if (i === this.currentHistoryIndex) {
                 item.classList.add('active');
             }
-            
+
             item.innerHTML = `
-                <canvas class="history-thumb" width="40" height="40"></canvas>
+                <img class="history-thumb" width="40" height="40" src="${this.history[i]}" style="image-rendering:pixelated; border-radius:4px; object-fit:contain;">
                 <span>Version ${i + 1}</span>
             `;
-            
-            const thumb = item.querySelector('canvas');
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = this.pixelCanvas.width;
-            tempCanvas.height = this.pixelCanvas.height;
-            tempCanvas.getContext('2d').putImageData(this.history[i], 0, 0);
-            thumb.getContext('2d').drawImage(tempCanvas, 0, 0, 40, 40);
-            
+
             item.addEventListener('click', () => {
                 this.currentHistoryIndex = i;
-                this.pixelCtx.putImageData(this.history[i], 0, 0);
+                this._restoreHistoryEntry(this.history[i]);
                 this.updateHistoryPanel();
             });
-            
+
             panel.appendChild(item);
         }
     }
@@ -1520,6 +1540,9 @@ class PixelArtStudioPro {
             document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
             document.querySelector('.filter-chip[data-filter="none"]').classList.add('active');
 
+            // Reset dropdown to placeholder so the same preset can be re-applied
+            document.getElementById('presets').value = '';
+
             this.processImage();
         }
     }
@@ -1560,11 +1583,6 @@ class PixelArtStudioPro {
             link.href = this.pixelCanvas.toDataURL(`image/${format}`, quality);
             link.click();
         }
-    }
-
-    batchProcess() {
-        const batchSize = parseInt(document.getElementById('batchSize').value);
-        this.showToast(`Processing ${batchSize} images... (Demo feature)`);
     }
 
     showToast(message, type = 'success') {
