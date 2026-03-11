@@ -47,12 +47,41 @@ h1 {
     gap: 20px;
 }
 
+/* Sidebar Labels */
+.sidebar-label {
+    font-size: 0.75em;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 20px;
+    display: inline-block;
+    margin-bottom: 18px;
+}
+
+.sidebar:first-of-type .sidebar-label {
+    background: linear-gradient(135deg, #e8f8f5, #d0f5ef);
+    color: #2aaa9e;
+    border: 1.5px solid #4ecdc4;
+}
+
+.sidebar:last-of-type .sidebar-label {
+    background: linear-gradient(135deg, #fff0f5, #ffe0ed);
+    color: #c0306a;
+    border: 1.5px solid #ff6b9d;
+}
+
 /* Sidebar Styles */
 .sidebar {
     background: #f8f9fa;
     border-radius: 20px;
     padding: 20px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.sidebar:last-of-type {
+    background: #fdf8fb;
+    border: 1.5px solid #ffe4f0;
 }
 
 .sidebar h3 {
@@ -414,40 +443,378 @@ canvas {
     margin-bottom: 20px;
 }
 
-/* Responsive Design */
+/* ============================================
+   MOBILE DRAWERS
+   Icon bars and slide-in drawer panels
+   Only active at <= 480px
+   ============================================ */
+
+/* Hidden on all sizes by default — JS/media query reveals on mobile */
+.mobile-icon-bar {
+    display: none;
+}
+
+.drawer-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 150;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+}
+
+.drawer-backdrop.active {
+    display: block;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   • > 768px      Desktop (3-column grid)
+   • 481–768px    Tablet (stacked, side-by-side canvases)
+   • <= 480px     Phone  (fully single-column, touch-optimised)
+   ============================================ */
+
+/* --- Slightly narrow desktop: shrink sidebar widths --- */
 @media (max-width: 1200px) {
     .main-grid {
-        grid-template-columns: 250px 1fr 250px;
+        grid-template-columns: 240px 1fr 240px;
     }
 }
 
-@media (max-width: 900px) {
-    .main-grid {
-        grid-template-columns: 1fr;
-    }
-
+/* --- Tablet: 481px to 768px (exactly half of desktop values) --- */
+@media (min-width: 481px) and (max-width: 768px) {
     body {
-        padding: 0.5rem;
+        padding: 10px;
+        align-items: flex-start;
     }
 
     .container {
-        padding: 0.5rem;
+        padding: 15px;
+        border-radius: 15px;
     }
 
-    .sidebar {
-        padding: 0.5rem;
+    h1 {
+        font-size: 1.8em;
+        margin-bottom: 8px;
     }
 
-    .preview-area {
-        padding: 0.5rem;
+    .subtitle {
+        font-size: 0.95em;
+        margin-bottom: 16px;
+    }
+
+    .main-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .canvas-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
     }
 
     .canvas-container {
-        padding: 0.5rem;
+        padding: 8px;
+        border-radius: 8px;
+    }
+
+    .canvas-container h3 {
+        font-size: 0.95em;
+    }
+
+    .sidebar {
+        padding: 10px;
+        border-radius: 10px;
+    }
+
+    .sidebar h3 {
+        font-size: 1.05em;
+    }
+
+    .tool-section {
+        margin-bottom: 18px;
+    }
+
+    .preview-area {
+        padding: 10px;
+        border-radius: 10px;
+    }
+
+    .action-buttons {
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .btn {
+        padding: 10px 14px;
+        font-size: 0.9em;
+        min-height: 44px;
+    }
+
+    .filter-chips {
+        gap: 6px;
+    }
+
+    .filter-chip {
+        padding: 5px 11px;
+        font-size: 0.82em;
+    }
+
+    .upload-area {
+        padding: 20px 14px;
+    }
+
+    .upload-icon {
+        font-size: 36px;
+    }
+
+    .modal-content {
+        padding: 15px;
+        border-radius: 10px;
+    }
+}
+
+/* --- Phone: up to 480px (exactly 1/4 of desktop values) --- */
+@media (max-width: 480px) {
+
+    /* Sidebars become fixed drawers */
+    #sidebar-basic,
+    #sidebar-advanced {
+        position: fixed;
+        top: 0;
+        height: 100dvh;
+        width: 78vw;
+        max-width: 300px;
+        z-index: 200;
+        overflow-y: auto;
+        border-radius: 0;
+        padding: 16px 12px 24px;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: none;
+    }
+
+    #sidebar-basic {
+        left: 0;
+        transform: translateX(-105%);
+        border-right: 2px solid #d0f5ef;
+        box-shadow: 4px 0 24px rgba(0,0,0,0.18);
+    }
+
+    #sidebar-advanced {
+        right: 0;
+        transform: translateX(105%);
+        border-left: 2px solid #ffe4f0;
+        box-shadow: -4px 0 24px rgba(0,0,0,0.18);
+    }
+
+    #sidebar-basic.drawer-open {
+        transform: translateX(0);
+    }
+
+    #sidebar-advanced.drawer-open {
+        transform: translateX(0);
+    }
+
+    /* Hide sidebars from normal grid flow */
+    .main-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    /* Icon bars */
+    .mobile-icon-bar {
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 100;
+        gap: 6px;
+    }
+
+    .mobile-icon-bar--left {
+        left: 0;
+        align-items: flex-start;
+    }
+
+    .mobile-icon-bar--right {
+        right: 0;
+        align-items: flex-end;
+    }
+
+    .mobile-icon-btn {
+        width: 38px;
+        height: 38px;
+        border: none;
+        background: rgba(255, 255, 255, 0.92);
+        cursor: pointer;
+        font-size: 17px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .mobile-icon-bar--left .mobile-icon-btn {
+        border-radius: 0 10px 10px 0;
+        border-left: 3px solid #4ecdc4;
+    }
+
+    .mobile-icon-bar--right .mobile-icon-btn {
+        border-radius: 10px 0 0 10px;
+        border-right: 3px solid #ff6b9d;
+    }
+
+    .mobile-icon-btn:active {
+        transform: scale(0.92);
+    }
+
+    .mobile-icon-btn.active {
+        background: #4ecdc4;
+    }
+
+    .mobile-icon-bar--right .mobile-icon-btn.active {
+        background: #ff6b9d;
+    }
+    body {
+        padding: 5px;
+        align-items: flex-start;
+    }
+
+    .container {
+        padding: 8px;
+        border-radius: 8px;
+    }
+
+    h1 {
+        font-size: 1.4em;
+        margin-bottom: 6px;
+    }
+
+    .subtitle {
+        font-size: 0.85em;
+        margin-bottom: 12px;
+    }
+
+    .main-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
     }
 
     .canvas-row {
         grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .canvas-container {
+        padding: 4px;
+        border-radius: 4px;
+    }
+
+    .canvas-container h3 {
+        font-size: 0.9em;
+    }
+
+    canvas {
+        max-height: 280px;
+        object-fit: contain;
+    }
+
+    .sidebar {
+        padding: 5px;
+        border-radius: 5px;
+    }
+
+    .sidebar h3 {
+        font-size: 1em;
+        margin-bottom: 10px;
+    }
+
+    .sidebar-label {
+        font-size: 0.7em;
+        padding: 4px 10px;
+        margin-bottom: 12px;
+    }
+
+    .tool-section {
+        margin-bottom: 16px;
+    }
+
+    .preview-area {
+        padding: 5px;
+        border-radius: 5px;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .btn {
+        padding: 12px 16px;
+        font-size: 0.95em;
+        min-height: 48px;
+        flex: unset;
+        width: 100%;
+    }
+
+    .upload-area {
+        padding: 18px 12px;
+    }
+
+    .upload-icon {
+        font-size: 32px;
+        margin-bottom: 6px;
+    }
+
+    .filter-chips {
+        gap: 6px;
+    }
+
+    .filter-chip {
+        padding: 5px 10px;
+        font-size: 0.8em;
+    }
+
+    .control-group {
+        margin-bottom: 12px;
+    }
+
+    .control-group label {
+        font-size: 0.85em;
+    }
+
+    .select-style,
+    .input-style {
+        padding: 9px;
+        font-size: 0.9em;
+    }
+
+    .checkbox-item {
+        padding: 6px 10px;
+        font-size: 0.85em;
+    }
+
+    .checkbox-item input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+    }
+
+    .history-panel {
+        max-height: 150px;
+    }
+
+    .modal-content {
+        padding: 8px;
+        border-radius: 5px;
+        width: 95%;
+    }
+
+    .modal h2 {
+        font-size: 1.1em;
     }
 }
 
