@@ -679,6 +679,7 @@ canvas {
 }
 
 
+/* ============================================
    • > 768px      Desktop (3-column grid)
    • 481–768px    Tablet (stacked, side-by-side canvases)
    • <= 480px     Phone  (fully single-column, touch-optimised)
@@ -1094,11 +1095,6 @@ canvas {
     .subtitle {
         font-size: 0.85em;
         margin-bottom: 12px;
-    }
-
-    .main-grid {
-        grid-template-columns: 1fr;
-        gap: 12px;
     }
 
     .canvas-row {
