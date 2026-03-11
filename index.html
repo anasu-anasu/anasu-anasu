@@ -12,10 +12,12 @@
         <div class="subtitle">Advanced Image to Pixel Art Converter with Professional Tools</div>
 
         <div class="main-grid">
-            <!-- Left Sidebar - Tools -->
-            <div class="sidebar">
-                <div class="tool-section">
-                    <h3>📁 Input</h3>
+            <!-- Left Sidebar - Basic -->
+            <div class="sidebar" id="sidebar-basic">
+                <div class="sidebar-label">🟢 Basic</div>
+
+                <div class="tool-section" id="section-upload">
+                    <h3>📁 Upload Image</h3>
                     <div class="upload-area" id="uploadArea">
                         <div class="upload-icon">🖼️</div>
                         <div>Drag & drop or click to browse</div>
@@ -24,9 +26,9 @@
                     </div>
                 </div>
 
-                <div class="tool-section">
-                    <h3>🎚️ Basic Controls</h3>
-                    
+                <div class="tool-section" id="section-pixel">
+                    <h3>🎚️ Pixel Controls</h3>
+
                     <div class="control-group">
                         <label>Pixel Size: <span id="pixelSizeValue" class="range-value">8</span>px</label>
                         <input type="range" id="pixelSize" min="1" max="64" value="8">
@@ -43,7 +45,7 @@
                     </div>
 
                     <div class="control-group">
-                        <label>Grid Thickness:</label>
+                        <label>Grid Thickness: <span id="gridThicknessValue" class="range-value">0</span></label>
                         <input type="range" id="gridThickness" min="0" max="3" value="0" step="0.5">
                     </div>
 
@@ -53,11 +55,10 @@
                     </div>
                 </div>
 
-                <div class="tool-section">
-                    <h3>🎨 Color Management</h3>
-                    
+                <div class="tool-section" id="section-palette">
+                    <h3>🎨 Palette</h3>
+
                     <div class="control-group">
-                        <label>Palette:</label>
                         <select id="palette" class="select-style">
                             <option value="full">Full Color</option>
                             <option value="nes">NES (54 colors)</option>
@@ -81,38 +82,16 @@
                         </div>
                     </div>
 
-                    <div class="control-group">
-                        <label>Color Count:</label>
-                        <input type="range" id="colorCount" min="2" max="256" value="16">
-                        <span id="colorCountValue" class="range-value">16</span>
-                    </div>
-
                     <div class="checkbox-group">
                         <label class="checkbox-item">
                             <input type="checkbox" id="dithering" checked> Dithering
                         </label>
-                        <label class="checkbox-item">
-                            <input type="checkbox" id="colorClustering"> Color Clustering
-                        </label>
-                    </div>
-
-                    <div class="control-group" id="ditheringTypeGroup">
-                        <label>Dithering Type:</label>
-                        <select id="ditheringType" class="select-style">
-                            <option value="floyd">Floyd-Steinberg</option>
-                            <option value="bayer">Bayer Matrix</option>
-                            <option value="atkinson">Atkinson</option>
-                            <option value="burkes">Burkes</option>
-                            <option value="stucki">Stucki</option>
-                            <option value="sierra">Sierra</option>
-                            <option value="jarvis">Jarvis-Judice-Ninke</option>
-                        </select>
                     </div>
                 </div>
 
-                <div class="tool-section">
-                    <h3>✨ Effects & Filters</h3>
-                    
+                <div class="tool-section" id="section-filters">
+                    <h3>✨ Filters</h3>
+
                     <div class="filter-chips">
                         <span class="filter-chip" data-filter="none">None</span>
                         <span class="filter-chip" data-filter="grayscale">Grayscale</span>
@@ -125,7 +104,7 @@
                         <span class="filter-chip" data-filter="blur">Gaussian Blur</span>
                     </div>
 
-                    <div class="control-group">
+                    <div class="control-group" style="margin-top: 12px;">
                         <label>Brightness: <span id="brightnessValue" class="range-value">0</span></label>
                         <input type="range" id="brightness" min="-100" max="100" value="0">
                     </div>
@@ -144,6 +123,21 @@
                         <label>Hue Rotate: <span id="hueValue" class="range-value">0°</span></label>
                         <input type="range" id="hue" min="0" max="360" value="0">
                     </div>
+                </div>
+
+                <div class="tool-section" id="section-presets">
+                    <h3>🎮 Presets</h3>
+                    <select id="presets" class="select-style">
+                        <option value="">Select a preset...</option>
+                        <option value="8bit">8-bit Console</option>
+                        <option value="16bit">16-bit Console</option>
+                        <option value="gameboy">Game Boy</option>
+                        <option value="nes">NES</option>
+                        <option value="crt">CRT Monitor</option>
+                        <option value="dotmatrix">Dot Matrix</option>
+                        <option value="crossstitch">Cross Stitch</option>
+                        <option value="minecraft">Minecraft Style</option>
+                    </select>
                 </div>
             </div>
 
@@ -187,9 +181,11 @@
                 </div>
             </div>
 
-            <!-- Right Sidebar - Advanced Tools -->
-            <div class="sidebar">
-                <div class="tool-section">
+            <!-- Right Sidebar - Advanced -->
+            <div class="sidebar" id="sidebar-advanced">
+                <div class="sidebar-label">🔬 Advanced</div>
+
+                <div class="tool-section" id="section-info">
                     <h3>📊 Image Info</h3>
                     <div id="imageInfo">
                         <p>Dimensions: <span id="imgDimensions">-</span></p>
@@ -199,9 +195,47 @@
                     </div>
                 </div>
 
-                <div class="tool-section">
-                    <h3>⚙️ Advanced Settings</h3>
-                    
+                <div class="tool-section" id="section-color-science">
+                    <h3>🎨 Color Science</h3>
+
+                    <div class="control-group">
+                        <label>Color Count: <span id="colorCountValue" class="range-value">16</span></label>
+                        <input type="range" id="colorCount" min="2" max="256" value="16">
+                    </div>
+
+                    <div class="checkbox-group">
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="colorClustering"> Color Clustering
+                        </label>
+                    </div>
+
+                    <div class="control-group" style="margin-top: 12px;">
+                        <label>Dithering Type:</label>
+                        <select id="ditheringType" class="select-style">
+                            <option value="floyd">Floyd-Steinberg</option>
+                            <option value="bayer">Bayer Matrix</option>
+                            <option value="atkinson">Atkinson</option>
+                            <option value="burkes">Burkes</option>
+                            <option value="stucki">Stucki</option>
+                            <option value="sierra">Sierra</option>
+                            <option value="jarvis">Jarvis-Judice-Ninke</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group" style="margin-top: 12px;">
+                        <label>Color Space:</label>
+                        <select id="colorSpace" class="select-style">
+                            <option value="rgb">RGB</option>
+                            <option value="hsl">HSL</option>
+                            <option value="lab">LAB (perceptual)</option>
+                            <option value="yuv">YUV</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="tool-section" id="section-rendering">
+                    <h3>⚙️ Rendering</h3>
+
                     <div class="control-group">
                         <label>Scale Method:</label>
                         <select id="scaleMethod" class="select-style">
@@ -212,26 +246,16 @@
                     </div>
 
                     <div class="control-group">
-                        <label>Color Space:</label>
-                        <select id="colorSpace" class="select-style">
-                            <option value="rgb">RGB</option>
-                            <option value="hsl">HSL</option>
-                            <option value="lab">LAB</option>
-                            <option value="yuv">YUV</option>
-                        </select>
-                    </div>
-
-                    <div class="control-group">
-                        <label>Edge Smoothing:</label>
+                        <label>Edge Smoothing: <span id="edgeSmoothingValue" class="range-value">0</span></label>
                         <input type="range" id="edgeSmoothing" min="0" max="100" value="0">
                     </div>
 
-                    <div class="checkbox-group">
+                    <div class="checkbox-group" style="margin-top: 10px;">
                         <label class="checkbox-item">
-                            <input type="checkbox" id="preserveAspect"> Preserve Aspect Ratio
+                            <input type="checkbox" id="preserveAspect"> Preserve Aspect
                         </label>
                         <label class="checkbox-item">
-                            <input type="checkbox" id="transparentBg"> Transparent Background
+                            <input type="checkbox" id="transparentBg"> Transparent BG
                         </label>
                         <label class="checkbox-item">
                             <input type="checkbox" id="autoEnhance"> Auto Enhance
@@ -239,7 +263,7 @@
                     </div>
                 </div>
 
-                <div class="tool-section">
+                <div class="tool-section" id="section-batch">
                     <h3>🔄 Batch Processing</h3>
                     <div class="control-group">
                         <label>Batch Size:</label>
@@ -250,7 +274,7 @@
                     </button>
                 </div>
 
-                <div class="tool-section">
+                <div class="tool-section" id="section-history">
                     <h3>📜 History</h3>
                     <div class="history-panel" id="historyPanel">
                         <div style="text-align: center; color: #999;">No history yet</div>
@@ -260,21 +284,6 @@
                         <button class="btn btn-outline" id="clearHistoryBtn" disabled style="flex: 1;">🗑️ Clear</button>
                     </div>
                 </div>
-
-                <div class="tool-section">
-                    <h3>🎮 Presets</h3>
-                    <select id="presets" class="select-style">
-                        <option value="">Select a preset...</option>
-                        <option value="8bit">8-bit Console</option>
-                        <option value="16bit">16-bit Console</option>
-                        <option value="gameboy">Game Boy</option>
-                        <option value="nes">NES</option>
-                        <option value="crt">CRT Monitor</option>
-                        <option value="dotmatrix">Dot Matrix</option>
-                        <option value="crossstitch">Cross Stitch</option>
-                        <option value="minecraft">Minecraft Style</option>
-                    </select>
-                </div>
             </div>
         </div>
     </div>
@@ -282,7 +291,7 @@
     <!-- Export Modal -->
     <div class="modal" id="exportModal">
         <div class="modal-content">
-            <h2>⬇️ Export Options</h2>
+            <h2>⬇️ Export Options <span id="closeModal" style="float:right; cursor:pointer; font-size:1.4em; line-height:1; color:#999;">×</span></h2>
             <div class="modal-options">
                 <label>
                     Format:
@@ -311,6 +320,27 @@
                 <button class="btn btn-outline" id="cancelExport">Cancel</button>
             </div>
         </div>
+    </div>
+
+    <!-- Mobile drawer backdrop -->
+    <div class="drawer-backdrop" id="drawerBackdrop"></div>
+
+    <!-- Mobile icon bar - Basic (left) -->
+    <div class="mobile-icon-bar mobile-icon-bar--left">
+        <button class="mobile-icon-btn" data-drawer="basic" data-section="section-upload" title="Upload">📁</button>
+        <button class="mobile-icon-btn" data-drawer="basic" data-section="section-pixel" title="Pixel Controls">🎚️</button>
+        <button class="mobile-icon-btn" data-drawer="basic" data-section="section-palette" title="Palette">🎨</button>
+        <button class="mobile-icon-btn" data-drawer="basic" data-section="section-filters" title="Filters">✨</button>
+        <button class="mobile-icon-btn" data-drawer="basic" data-section="section-presets" title="Presets">🎮</button>
+    </div>
+
+    <!-- Mobile icon bar - Advanced (right) -->
+    <div class="mobile-icon-bar mobile-icon-bar--right">
+        <button class="mobile-icon-btn" data-drawer="advanced" data-section="section-info" title="Image Info">📊</button>
+        <button class="mobile-icon-btn" data-drawer="advanced" data-section="section-color-science" title="Color Science">🔬</button>
+        <button class="mobile-icon-btn" data-drawer="advanced" data-section="section-rendering" title="Rendering">⚙️</button>
+        <button class="mobile-icon-btn" data-drawer="advanced" data-section="section-batch" title="Batch">🔄</button>
+        <button class="mobile-icon-btn" data-drawer="advanced" data-section="section-history" title="History">📜</button>
     </div>
 
     <script src="script.js"></script>
